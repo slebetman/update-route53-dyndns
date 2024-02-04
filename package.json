@@ -1,0 +1,14 @@
+{
+  "name": "route53-dyndns",
+  "version": "1.0.0",
+  "description": "Update route53 record",
+  "main": "update",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "slebetman@gmail.com",
+  "license": "LGPL-3.0",
+  "dependencies": {
+    "nice-route53": "^1.3.1"
+  }
+}
