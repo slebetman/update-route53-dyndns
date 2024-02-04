@@ -1,0 +1,8 @@
+{
+	"HostedZoneId": "",
+	"Records": [
+		"example.com"
+	],
+	"TTL": 60,
+	"IpAddressFile": "/var/tmp/route53-dyndns.txt"
+}

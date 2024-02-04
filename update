@@ -1,3 +1,78 @@
 #! /usr/bin/env node
 
-console.log('Hello World');
+const { exec } = require('child_process');
+const fs = require('fs/promises');
+const { fromEnv } = require("@aws-sdk/credential-providers");
+const {	Route53Client, ChangeResourceRecordSetsCommand } = require("@aws-sdk/client-route-53");
+
+const config = require('./config.json');
+
+function myIp () {
+	return new Promise((ok,fail) => {
+		exec(`dig +short txt ch whoami.cloudflare @1.0.0.1`, (err, stdout, stderr) => {
+			if (err) return fail(err);
+			ok(stdout.replace(/"|\n/g,''));
+		})
+	})
+}
+
+async function updateRoute53 (ipAddress) {
+	const client = new Route53Client({
+		credentials: fromEnv(),
+	});
+	
+	const change = {
+		HostedZoneId: config.HostedZoneId,
+		ChangeBatch: {
+			Changes: config.Records.map(r => {
+				return {
+					Action: "UPSERT",
+					ResourceRecordSet: {
+						Name: r,
+						Type: "A",
+						TTL: config.TTL,
+						ResourceRecords: [
+							{
+								Value: ipAddress
+							},
+						],
+					},
+				}
+			})
+		},
+	}
+	
+	const changeCommand = new ChangeResourceRecordSetsCommand(change);
+	const response = await client.send(changeCommand);
+	
+	console.log(JSON.stringify(response, null, 2));
+}
+
+async function main () {
+	const ipAddress = await myIp();
+	let cachedIpAddress = '';
+
+	try {
+		cachedIpAddress = await fs.readFile(config.IpAddressFile, 'utf8');
+	}
+	catch (err) {
+		if (err.code !== 'ENOENT') { // ignore if file don't exist
+			console.log(err.message);
+			process.exit(-1);
+		}
+	}
+
+	if (ipAddress !== cachedIpAddress) {
+		console.log(`Updating ip address to ${ipAddress} ..`);
+		await updateRoute53(ipAddress);
+
+		await fs.writeFile(config.IpAddressFile, ipAddress);
+	}
+}
+
+main()
+.then(() => process.exit())
+.catch((err) => {
+	console.log('ERROR:', err);
+	process.exit(-1);
+});
