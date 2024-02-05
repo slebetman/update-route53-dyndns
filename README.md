@@ -1,5 +1,5 @@
 # Update Route53 Dyndns
------------------------
+
 Use AWS Route53 as your own personal Dyndns
 
 ## Installation
