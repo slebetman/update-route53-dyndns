@@ -7,9 +7,16 @@ const {	Route53Client, ChangeResourceRecordSetsCommand } = require("@aws-sdk/cli
 
 const config = require('./config.json');
 
+const IP_LOOKUP_SERVICE = {
+	cloudflare: 'dig +short txt ch whoami.cloudflare @1.0.0.1',
+	opendns: 'dig +short myip.opendns.com @resolver1.opendns.com',
+	akamai: 'dig +short @ns1-1.akamaitech.net ANY whoami.akamai.net',
+	google: 'dig +short @ns1.google.com TXT o-o.myaddr.l.google.com',
+}
+
 function myIp () {
 	return new Promise((ok,fail) => {
-		exec(`dig +short txt ch whoami.cloudflare @1.0.0.1`, (err, stdout, stderr) => {
+		exec(IP_LOOKUP_SERVICE.google, (err, stdout, stderr) => {
 			if (err) return fail(err);
 			const ip = stdout.replace(/"|\n/g,'');
 			
