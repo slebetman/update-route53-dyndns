@@ -16,7 +16,7 @@ const IP_LOOKUP_SERVICE = {
 
 function myIp () {
 	return new Promise((ok,fail) => {
-		exec(IP_LOOKUP_SERVICE.google, (err, stdout, stderr) => {
+		exec(IP_LOOKUP_SERVICE.opendns, (err, stdout, stderr) => {
 			if (err) return fail(err);
 			const ip = stdout.replace(/"|\n/g,'');
 			
